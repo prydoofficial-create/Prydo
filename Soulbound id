@@ -1,0 +1,36 @@
+// SPDX-License-Identifier: MIT
+pragma solidity ^0.8.20;
+
+import "@openzeppelin/contracts/token/ERC721/ERC721.sol";
+
+contract PrydoID is ERC721 {
+
+    uint256 public tokenId;
+
+    mapping(address => bool) public minted;
+
+    constructor() ERC721("Prydo ID","PRYDOID"){}
+
+    function mint() public {
+
+        require(!minted[msg.sender],"Already minted");
+
+        tokenId++;
+
+        _safeMint(msg.sender,tokenId);
+
+        minted[msg.sender]=true;
+    }
+
+    function _beforeTokenTransfer(
+        address from,
+        address to,
+        uint256 id,
+        uint256 batch
+    ) internal override {
+
+        require(from==address(0),"Soulbound");
+
+        super._beforeTokenTransfer(from,to,id,batch);
+    }
+}
