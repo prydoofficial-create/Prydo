@@ -1,0 +1,23 @@
+const express = require("express")
+
+const app = express()
+
+app.get("/creator/:wallet",(req,res)=>{
+
+ const wallet = req.params.wallet
+
+ const data = {
+
+   wallet,
+
+   nftsCreated:24,
+
+   totalSales:180,
+
+   volume:"3.2 ETH"
+ }
+
+ res.json(data)
+})
+
+app.listen(3001)
