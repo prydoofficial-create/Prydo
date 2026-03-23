@@ -1,0 +1,52 @@
+// SPDX-License-Identifier: MIT
+pragma solidity ^0.8.20;
+
+import "@openzeppelin/contracts/token/ERC721/ERC721.sol";
+
+contract PrydoAvatar is ERC721 {
+
+    uint256 public supply;
+
+    uint256 public price = 0.003 ether;
+
+    constructor() ERC721("Prydo Avatar","PRYDOAV"){ }
+
+    function mint() public payable {
+
+        uint256 mintPrice = getPrice();
+
+        require(msg.value >= mintPrice);
+
+        supply++;
+
+        _safeMint(msg.sender,supply);
+    }
+
+    function getPrice() public view returns(uint256){
+
+        if(supply < 100){
+
+            return 0;
+
+        }
+
+        if(supply < 1000){
+
+            if(supply % 10 < 7) return 0;
+
+            return price;
+
+        }
+
+        if(supply < 11000){
+
+            if(supply % 2 == 0) return 0;
+
+            return price;
+        }
+
+        if(supply % 5 == 0) return 0;
+
+        return price;
+    }
+}
