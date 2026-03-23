@@ -1,0 +1,15 @@
+function weightedRandom(traits){
+
+  const total = traits.reduce((a,b)=>a+b.weight,0)
+
+  let r = Math.random()*total
+
+  for(let t of traits){
+
+    if(r < t.weight) return t.value
+
+    r -= t.weight
+  }
+}
+
+module.exports = { weightedRandom }
