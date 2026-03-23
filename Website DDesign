@@ -1,0 +1,257 @@
+Create a complete modern Web3 website called "Prydo".
+
+Project Description:
+Prydo is a decentralized Web3 identity and creator ecosystem where users mint a Soulbound identity NFT called "Prydo ID" and use it to access creator tools, generate avatars, and participate in DAO governance.
+
+The website should look futuristic, modern, and Web3 style with a dark theme, neon accents, and smooth animations.
+
+Primary Colors:
+Black background
+Purple accents
+Neon blue highlights
+
+Typography:
+Modern tech style fonts.
+
+Animations:
+Smooth Web3 transitions, hover effects, glowing buttons, glassmorphism cards.
+
+---
+
+CORE FEATURES
+
+1. Wallet Connection
+
+Add Web3 wallet login using MetaMask.
+Users must connect their wallet to access minting and creator features.
+
+---
+
+2. Prydo ID (Soulbound NFT)
+
+Create a page where users can mint their Prydo ID.
+
+Rules:
+Only one Prydo ID per wallet.
+This NFT is Soulbound (non-transferable).
+
+Mint Phases:
+
+Phase 1 (Genesis)
+Supply: 100 NFTs
+Price: Free
+
+Phase 2 (Early Users)
+Supply: 900 NFTs
+70% free mint
+30% minimal price
+
+Phase 3 (Growth)
+Supply: 10,000 NFTs
+50% free mint
+
+Phase 4 (Public)
+Unlimited supply
+20% free mint
+
+Display mint progress and supply counters on the website.
+
+---
+
+3. Identity Creation Page
+
+After minting Prydo ID, users can create identity NFTs.
+
+Two identity types:
+
+Option A: Face NFT
+Users upload a face photo.
+AI converts it into a stylized NFT avatar.
+
+Option B: Avatar NFT
+Users generate avatars using traits.
+
+Traits System:
+
+Background
+Skin
+Hair
+Eyes
+Mouth
+Outfit
+Accessories
+Aura
+
+Example traits:
+
+Background: Neon City, Galaxy, Matrix, Cyber Grid
+Hair: Short Hair, Neon Hair, Cyber Spikes
+Eyes: Normal Eyes, Laser Eyes, Robot Eyes
+Outfit: Hoodie, Hacker Jacket, Armor
+Accessories: Glasses, VR Headset, Crown
+Aura: Fire Aura, Lightning Aura, Cosmic Aura
+
+NFTs should be auto-generated from layered traits with rarity probabilities.
+
+---
+
+4. NFT Generation
+
+NFT images and metadata should automatically generate.
+
+Metadata example:
+
+{
+"name": "Prydo Avatar #104",
+"description": "Prydo Web3 Identity Avatar",
+"attributes": [
+{"trait_type": "Background","value": "Neon"},
+{"trait_type": "Hair","value": "Cyber Spikes"},
+{"trait_type": "Eyes","value": "Laser"}
+]
+}
+
+NFT images and metadata should be stored on IPFS.
+
+---
+
+5. Creator Platform
+
+Create a section where creators can:
+
+Create NFTs
+Launch collections
+Sell NFTs
+Track analytics
+
+Add a "Create NFT" button and NFT upload interface.
+
+---
+
+6. Creator Dashboard
+
+Create a dashboard page showing:
+
+Wallet address
+NFTs created
+Total sales
+Revenue
+Followers
+DAO voting power
+
+Add sections:
+
+My NFTs
+Analytics
+DAO Votes
+Profile Settings
+
+---
+
+7. DAO Governance
+
+Create a DAO voting page.
+
+Genesis Prydo ID holders can vote on proposals.
+
+Features:
+
+Create proposal
+Vote for proposal
+Vote against proposal
+Show voting results
+
+Example proposals:
+
+Add new features
+Upgrade creator tools
+Launch new NFT collections
+
+---
+
+8. Website Pages
+
+Create the following pages:
+
+Home
+Mint Prydo ID
+Create Identity
+Avatar Generator
+Creator Dashboard
+DAO Governance
+
+Future page placeholder:
+Marketplace
+
+---
+
+9. Home Page Design
+
+Hero Section:
+Title: "Build Your Web3 Identity with Prydo"
+
+Subtitle:
+Decentralized identity and creator ecosystem powered by NFTs.
+
+Buttons:
+
+Connect Wallet
+Mint Prydo ID
+
+Below hero section add:
+
+Features grid
+How it works
+Roadmap
+Community section
+
+---
+
+10. User Flow
+
+Connect Wallet
+↓
+Mint Prydo ID
+↓
+Choose identity type (Face NFT or Avatar NFT)
+↓
+Generate NFT
+↓
+Access Creator Dashboard
+↓
+Participate in DAO voting
+
+---
+
+11. Technology Stack
+
+Frontend:
+React or Next.js
+
+Web3:
+Ethers.js
+
+Blockchain:
+Polygon
+
+Storage:
+IPFS
+
+NFT Standard:
+ERC-721
+
+---
+
+12. UI Style
+
+Dark cyberpunk Web3 style
+Glowing gradients
+Glassmorphism cards
+Animated buttons
+Responsive design
+
+Make the website mobile friendly and optimized for Web3 users.
+
+---
+
+The final result should be a fully designed Web3 platform interface with mint pages, dashboard UI, avatar generator UI, and DAO voting UI.
