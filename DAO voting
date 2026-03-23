@@ -1,0 +1,49 @@
+// SPDX-License-Identifier: MIT
+pragma solidity ^0.8.20;
+
+contract PrydoDAO {
+
+    struct Proposal {
+
+        string title;
+
+        uint256 votesFor;
+
+        uint256 votesAgainst;
+
+        uint256 endTime;
+
+        bool executed;
+    }
+
+    Proposal[] public proposals;
+
+    mapping(uint256 => mapping(address => bool)) public voted;
+
+    function createProposal(string memory title) public {
+
+        proposals.push(
+            Proposal(title,0,0,block.timestamp + 3 days,false)
+        );
+    }
+
+    function vote(uint256 id,bool support) public {
+
+        require(!voted[id][msg.sender]);
+
+        Proposal storage p = proposals[id];
+
+        require(block.timestamp < p.endTime);
+
+        if(support){
+
+            p.votesFor++;
+
+        }else{
+
+            p.votesAgainst++;
+        }
+
+        voted[id][msg.sender]=true;
+    }
+}
