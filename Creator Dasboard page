@@ -1,0 +1,31 @@
+import { useEffect,useState } from "react"
+
+export default function Dashboard(){
+
+ const [data,setData] = useState(null)
+
+ useEffect(()=>{
+
+   fetch("http://localhost:3001/creator/0x123")
+   .then(res=>res.json())
+   .then(setData)
+
+ },[])
+
+ if(!data) return <div>Loading...</div>
+
+ return(
+
+   <div>
+
+   <h1>Prydo Creator Dashboard</h1>
+
+   <p>NFTs Created: {data.nftsCreated}</p>
+
+   <p>Total Sales: {data.totalSales}</p>
+
+   <p>Volume: {data.volume}</p>
+
+   </div>
+ )
+}
