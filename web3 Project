@@ -1,0 +1,745 @@
+ (cd "$(git rev-parse --show-toplevel)" && git apply --3way <<'EOF' 
+diff --git a/.gitignore b/.gitignore
+new file mode 100644
+index 0000000000000000000000000000000000000000..ca9e52e85118ede4c9cd408b52dbbdabf35c9fbb
+--- /dev/null
++++ b/.gitignore
+@@ -0,0 +1,4 @@
++node_modules
++dist
++.DS_Store
++npm-debug.log*
+diff --git a/index.html b/index.html
+new file mode 100644
+index 0000000000000000000000000000000000000000..709c0b575a39fdec5a1a26069a3713f9a0fb1f00
+--- /dev/null
++++ b/index.html
+@@ -0,0 +1,13 @@
++<!doctype html>
++<html lang="en">
++  <head>
++    <meta charset="UTF-8" />
++    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
++    <title>Prydo | Web3 Identity Ecosystem</title>
++    <meta name="description" content="Prydo is a decentralized Web3 identity and creator ecosystem powered by Soulbound NFTs." />
++  </head>
++  <body>
++    <div id="root"></div>
++    <script type="module" src="/src/main.jsx"></script>
++  </body>
++</html>
+diff --git a/package.json b/package.json
+new file mode 100644
+index 0000000000000000000000000000000000000000..19d75032113012afd97fa41ab8a2a1e23788a8f3
+--- /dev/null
++++ b/package.json
+@@ -0,0 +1,21 @@
++{
++  "name": "prydo-web3-platform",
++  "private": true,
++  "version": "1.0.0",
++  "type": "module",
++  "scripts": {
++    "dev": "vite",
++    "build": "vite build",
++    "preview": "vite preview"
++  },
++  "dependencies": {
++    "ethers": "^6.15.0",
++    "react": "^18.3.1",
++    "react-dom": "^18.3.1",
++    "react-router-dom": "^6.30.1"
++  },
++  "devDependencies": {
++    "@vitejs/plugin-react": "^4.4.1",
++    "vite": "^7.1.7"
++  }
++}
+diff --git a/src/App.jsx b/src/App.jsx
+new file mode 100644
+index 0000000000000000000000000000000000000000..10ca83f3c760e1e31de41b1566a5d52dc85731ec
+--- /dev/null
++++ b/src/App.jsx
+@@ -0,0 +1,85 @@
++import { useMemo, useState } from 'react';
++import { Link, NavLink, Route, Routes } from 'react-router-dom';
++import { ethers } from 'ethers';
++import HomePage from './pages/HomePage';
++import MintPage from './pages/MintPage';
++import CreateIdentityPage from './pages/CreateIdentityPage';
++import AvatarGeneratorPage from './pages/AvatarGeneratorPage';
++import CreatorDashboardPage from './pages/CreatorDashboardPage';
++import DaoGovernancePage from './pages/DaoGovernancePage';
++import MarketplacePlaceholderPage from './pages/MarketplacePlaceholderPage';
++
++const truncateAddress = (address = '') => (address ? `${address.slice(0, 6)}...${address.slice(-4)}` : '');
++
++export default function App() {
++  const [walletAddress, setWalletAddress] = useState('');
++  const [hasPrydoId, setHasPrydoId] = useState(false);
++  const [mintCount, setMintCount] = useState(46);
++  const [createdNfts, setCreatedNfts] = useState([]);
++
++  const connectWallet = async () => {
++    if (!window.ethereum) {
++      alert('MetaMask is required to continue.');
++      return;
++    }
++    const provider = new ethers.BrowserProvider(window.ethereum);
++    const accounts = await provider.send('eth_requestAccounts', []);
++    setWalletAddress(accounts[0] || '');
++  };
++
++  const appState = useMemo(
++    () => ({
++      walletAddress,
++      hasPrydoId,
++      mintCount,
++      createdNfts,
++      connectWallet,
++      mintPrydoId: () => {
++        if (!walletAddress || hasPrydoId) return false;
++        setHasPrydoId(true);
++        setMintCount((prev) => prev + 1);
++        return true;
++      },
++      addCreatedNft: (nft) => setCreatedNfts((prev) => [...prev, nft])
++    }),
++    [walletAddress, hasPrydoId, mintCount, createdNfts]
++  );
++
++  return (
++    <div className="app-shell">
++      <header className="glass-nav">
++        <Link to="/" className="brand">Prydo</Link>
++        <nav>
++          {[
++            ['/', 'Home'],
++            ['/mint-prydo-id', 'Mint Prydo ID'],
++            ['/create-identity', 'Create Identity'],
++            ['/avatar-generator', 'Avatar Generator'],
++            ['/creator-dashboard', 'Dashboard'],
++            ['/dao-governance', 'DAO'],
++            ['/marketplace', 'Marketplace']
++          ].map(([path, label]) => (
++            <NavLink key={path} to={path} className={({ isActive }) => (isActive ? 'nav-link active' : 'nav-link')}>
++              {label}
++            </NavLink>
++          ))}
++        </nav>
++        <button className="btn neon" onClick={connectWallet}>
++          {walletAddress ? truncateAddress(walletAddress) : 'Connect Wallet'}
++        </button>
++      </header>
++
++      <main>
++        <Routes>
++          <Route path="/" element={<HomePage appState={appState} />} />
++          <Route path="/mint-prydo-id" element={<MintPage appState={appState} />} />
++          <Route path="/create-identity" element={<CreateIdentityPage appState={appState} />} />
++          <Route path="/avatar-generator" element={<AvatarGeneratorPage appState={appState} />} />
++          <Route path="/creator-dashboard" element={<CreatorDashboardPage appState={appState} />} />
++          <Route path="/dao-governance" element={<DaoGovernancePage appState={appState} />} />
++          <Route path="/marketplace" element={<MarketplacePlaceholderPage />} />
++        </Routes>
++      </main>
++    </div>
++  );
++}
+diff --git a/src/data/prydoData.js b/src/data/prydoData.js
+new file mode 100644
+index 0000000000000000000000000000000000000000..6ccced46bf492a3f5fa3372156d8631507746017
+--- /dev/null
++++ b/src/data/prydoData.js
+@@ -0,0 +1,30 @@
++export const mintPhases = [
++  { name: 'Phase 1 (Genesis)', supply: 100, freeRate: 1, price: '0 MATIC' },
++  { name: 'Phase 2 (Early Users)', supply: 900, freeRate: 0.7, price: '0.01 MATIC (30%)' },
++  { name: 'Phase 3 (Growth)', supply: 10000, freeRate: 0.5, price: '0.01 MATIC (50%)' },
++  { name: 'Phase 4 (Public)', supply: null, freeRate: 0.2, price: '0.01 MATIC (80%)' }
++];
++
++export const traitLayers = {
++  Background: ['Neon City', 'Galaxy', 'Matrix', 'Cyber Grid'],
++  Skin: ['Human', 'Chrome', 'Holographic', 'Synthwave'],
++  Hair: ['Short Hair', 'Neon Hair', 'Cyber Spikes'],
++  Eyes: ['Normal Eyes', 'Laser Eyes', 'Robot Eyes'],
++  Mouth: ['Neutral', 'Cyber Smile', 'Mask'],
++  Outfit: ['Hoodie', 'Hacker Jacket', 'Armor'],
++  Accessories: ['Glasses', 'VR Headset', 'Crown'],
++  Aura: ['Fire Aura', 'Lightning Aura', 'Cosmic Aura']
++};
++
++export const rarityWeights = {
++  common: 0.55,
++  rare: 0.3,
++  epic: 0.12,
++  legendary: 0.03
++};
++
++export const proposalsSeed = [
++  { id: 1, title: 'Add new creator features', forVotes: 120, againstVotes: 24 },
++  { id: 2, title: 'Upgrade creator tools', forVotes: 92, againstVotes: 11 },
++  { id: 3, title: 'Launch new NFT collections', forVotes: 71, againstVotes: 39 }
++];
+diff --git a/src/main.jsx b/src/main.jsx
+new file mode 100644
+index 0000000000000000000000000000000000000000..b5a73fbe3f1a08c0b6feaa2d452d00f164742b76
+--- /dev/null
++++ b/src/main.jsx
+@@ -0,0 +1,13 @@
++import React from 'react';
++import ReactDOM from 'react-dom/client';
++import { BrowserRouter } from 'react-router-dom';
++import App from './App';
++import './styles.css';
++
++ReactDOM.createRoot(document.getElementById('root')).render(
++  <React.StrictMode>
++    <BrowserRouter>
++      <App />
++    </BrowserRouter>
++  </React.StrictMode>
++);
+diff --git a/src/pages/AvatarGeneratorPage.jsx b/src/pages/AvatarGeneratorPage.jsx
+new file mode 100644
+index 0000000000000000000000000000000000000000..ec1a85316cc1bfdd338faf960ef89e714f74a44e
+--- /dev/null
++++ b/src/pages/AvatarGeneratorPage.jsx
+@@ -0,0 +1,56 @@
++import { useMemo, useState } from 'react';
++import { traitLayers } from '../data/prydoData';
++
++const randomFrom = (arr) => arr[Math.floor(Math.random() * arr.length)];
++
++export default function AvatarGeneratorPage({ appState }) {
++  const [selection, setSelection] = useState(
++    Object.fromEntries(Object.entries(traitLayers).map(([k, values]) => [k, values[0]]))
++  );
++
++  const generated = useMemo(
++    () => ({
++      name: `Prydo Avatar #${100 + appState.createdNfts.length + 1}`,
++      description: 'Prydo Web3 Identity Avatar',
++      attributes: Object.entries(selection).map(([trait_type, value]) => ({ trait_type, value }))
++    }),
++    [selection, appState.createdNfts.length]
++  );
++
++  const randomize = () => {
++    const updated = Object.fromEntries(Object.entries(traitLayers).map(([k, values]) => [k, randomFrom(values)]));
++    setSelection(updated);
++  };
++
++  const mintAvatar = () => {
++    appState.addCreatedNft({ ...generated, id: Date.now() });
++    alert('Avatar NFT generated. Image + metadata queued for IPFS pinning (UI simulation).');
++  };
++
++  return (
++    <div className="page">
++      <section className="glass-card">
++        <h1>Avatar Generator</h1>
++        <p>Layer-based NFT generation with rarity-ready traits and IPFS metadata output.</p>
++
++        <div className="grid-3">
++          {Object.entries(traitLayers).map(([trait, options]) => (
++            <label key={trait} className="input-group">
++              <span>{trait}</span>
++              <select value={selection[trait]} onChange={(e) => setSelection((prev) => ({ ...prev, [trait]: e.target.value }))}>
++                {options.map((option) => <option key={option}>{option}</option>)}
++              </select>
++            </label>
++          ))}
++        </div>
++
++        <div className="row">
++          <button className="btn ghost" onClick={randomize}>Randomize Traits</button>
++          <button className="btn neon" onClick={mintAvatar} disabled={!appState.hasPrydoId}>Generate NFT</button>
++        </div>
++
++        <pre>{JSON.stringify(generated, null, 2)}</pre>
++      </section>
++    </div>
++  );
++}
+diff --git a/src/pages/CreateIdentityPage.jsx b/src/pages/CreateIdentityPage.jsx
+new file mode 100644
+index 0000000000000000000000000000000000000000..a81e3595ea5caed85a1bdbee8bd7c4453da89d35
+--- /dev/null
++++ b/src/pages/CreateIdentityPage.jsx
+@@ -0,0 +1,42 @@
++import { useState } from 'react';
++
++export default function CreateIdentityPage({ appState }) {
++  const [type, setType] = useState('Face NFT');
++  const [uploadedName, setUploadedName] = useState('');
++
++  return (
++    <div className="page">
++      <section className="glass-card">
++        <h1>Create Identity NFT</h1>
++        <p>Choose your identity mode after minting Prydo ID.</p>
++
++        <div className="row">
++          {['Face NFT', 'Avatar NFT'].map((item) => (
++            <button key={item} className={`btn ${type === item ? 'neon' : 'ghost'}`} onClick={() => setType(item)}>
++              {item}
++            </button>
++          ))}
++        </div>
++
++        {type === 'Face NFT' ? (
++          <div className="glass-inner">
++            <h3>Upload Face Photo</h3>
++            <input
++              type="file"
++              accept="image/*"
++              onChange={(event) => setUploadedName(event.target.files?.[0]?.name || '')}
++            />
++            <p className="small">AI stylization pipeline placeholder. Selected: {uploadedName || 'None'}</p>
++          </div>
++        ) : (
++          <div className="glass-inner">
++            <h3>Use Trait Generator</h3>
++            <p>Create layered avatars with rarity-based traits in the avatar generator page.</p>
++          </div>
++        )}
++
++        <p className="small">Identity creation unlocks after Prydo ID mint: {appState.hasPrydoId ? 'Unlocked' : 'Locked'}</p>
++      </section>
++    </div>
++  );
++}
+diff --git a/src/pages/CreatorDashboardPage.jsx b/src/pages/CreatorDashboardPage.jsx
+new file mode 100644
+index 0000000000000000000000000000000000000000..9a79470b4ab3c0de12c57da6b4f99df0195bb3fe
+--- /dev/null
++++ b/src/pages/CreatorDashboardPage.jsx
+@@ -0,0 +1,61 @@
++export default function CreatorDashboardPage({ appState }) {
++  const mockSales = 42;
++  const revenue = (mockSales * 0.07).toFixed(2);
++
++  return (
++    <div className="page">
++      <section className="glass-card">
++        <h1>Creator Dashboard</h1>
++        <div className="grid-3">
++          <Stat label="Wallet" value={appState.walletAddress || 'Not connected'} />
++          <Stat label="NFTs Created" value={String(appState.createdNfts.length)} />
++          <Stat label="Total Sales" value={String(mockSales)} />
++          <Stat label="Revenue" value={`${revenue} ETH`} />
++          <Stat label="Followers" value="1,248" />
++          <Stat label="DAO Voting Power" value={appState.hasPrydoId ? 'Genesis Holder' : '0'} />
++        </div>
++      </section>
++
++      <section className="grid-2">
++        <article className="glass-card">
++          <h2>My NFTs</h2>
++          {appState.createdNfts.length === 0 ? (
++            <p>No NFTs created yet.</p>
++          ) : (
++            <ul>
++              {appState.createdNfts.map((item) => (
++                <li key={item.id}>{item.name}</li>
++              ))}
++            </ul>
++          )}
++        </article>
++        <article className="glass-card">
++          <h2>Analytics</h2>
++          <p>Collection Performance: +12% week-over-week.</p>
++          <p>Conversion Rate: 5.4%</p>
++          <button className="btn neon">Create NFT</button>
++        </article>
++      </section>
++
++      <section className="grid-2">
++        <article className="glass-card">
++          <h2>DAO Votes</h2>
++          <p>Your recent votes and proposal participation appear here.</p>
++        </article>
++        <article className="glass-card">
++          <h2>Profile Settings</h2>
++          <p>Configure profile, social links, payout wallet, and creator metadata.</p>
++        </article>
++      </section>
++    </div>
++  );
++}
++
++function Stat({ label, value }) {
++  return (
++    <article className="stat-card">
++      <span>{label}</span>
++      <strong>{value}</strong>
++    </article>
++  );
++}
+diff --git a/src/pages/DaoGovernancePage.jsx b/src/pages/DaoGovernancePage.jsx
+new file mode 100644
+index 0000000000000000000000000000000000000000..c73ce33167065c348d568ea03f33761a9a9981c2
+--- /dev/null
++++ b/src/pages/DaoGovernancePage.jsx
+@@ -0,0 +1,69 @@
++import { useState } from 'react';
++import { proposalsSeed } from '../data/prydoData';
++
++export default function DaoGovernancePage({ appState }) {
++  const [proposals, setProposals] = useState(proposalsSeed);
++  const [draft, setDraft] = useState('');
++
++  const castVote = (id, type) => {
++    setProposals((prev) =>
++      prev.map((proposal) =>
++        proposal.id === id
++          ? {
++              ...proposal,
++              forVotes: proposal.forVotes + (type === 'for' ? 1 : 0),
++              againstVotes: proposal.againstVotes + (type === 'against' ? 1 : 0)
++            }
++          : proposal
++      )
++    );
++  };
++
++  const createProposal = () => {
++    if (!draft.trim()) return;
++    setProposals((prev) => [...prev, { id: Date.now(), title: draft, forVotes: 0, againstVotes: 0 }]);
++    setDraft('');
++  };
++
++  return (
++    <div className="page">
++      <section className="glass-card">
++        <h1>DAO Governance</h1>
++        <p>Genesis Prydo ID holders can create proposals and vote.</p>
++        <div className="row">
++          <input
++            className="text-input"
++            type="text"
++            value={draft}
++            placeholder="Create proposal..."
++            onChange={(event) => setDraft(event.target.value)}
++          />
++          <button className="btn neon" disabled={!appState.hasPrydoId} onClick={createProposal}>Create Proposal</button>
++        </div>
++      </section>
++
++      <section className="grid-2">
++        {proposals.map((proposal) => {
++          const total = proposal.forVotes + proposal.againstVotes || 1;
++          const support = ((proposal.forVotes / total) * 100).toFixed(1);
++
++          return (
++            <article key={proposal.id} className="glass-card">
++              <h3>{proposal.title}</h3>
++              <p>For: {proposal.forVotes} | Against: {proposal.againstVotes}</p>
++              <p>Support: {support}%</p>
++              <div className="row">
++                <button className="btn ghost" disabled={!appState.hasPrydoId} onClick={() => castVote(proposal.id, 'for')}>
++                  Vote For
++                </button>
++                <button className="btn ghost" disabled={!appState.hasPrydoId} onClick={() => castVote(proposal.id, 'against')}>
++                  Vote Against
++                </button>
++              </div>
++            </article>
++          );
++        })}
++      </section>
++    </div>
++  );
++}
+diff --git a/src/pages/HomePage.jsx b/src/pages/HomePage.jsx
+new file mode 100644
+index 0000000000000000000000000000000000000000..531afdcf53234188967d9a5b70f2487f5a535709
+--- /dev/null
++++ b/src/pages/HomePage.jsx
+@@ -0,0 +1,60 @@
++import { Link } from 'react-router-dom';
++
++export default function HomePage({ appState }) {
++  return (
++    <div className="page">
++      <section className="hero glass-card">
++        <p className="label">Polygon • Soulbound Identity • Creator DAO</p>
++        <h1>Build Your Web3 Identity with Prydo</h1>
++        <p>Decentralized identity and creator ecosystem powered by NFTs.</p>
++        <div className="row">
++          <button className="btn neon" onClick={appState.connectWallet}>Connect Wallet</button>
++          <Link to="/mint-prydo-id" className="btn ghost">Mint Prydo ID</Link>
++        </div>
++      </section>
++
++      <section className="grid-3">
++        {[
++          ['Soulbound Prydo ID', 'Mint a non-transferable identity NFT bound to your wallet.'],
++          ['Avatar Intelligence', 'Generate AI-styled face NFTs or trait-driven avatars with rarity layers.'],
++          ['Creator Economy', 'Launch collections, track sales, and govern the ecosystem through DAO voting.']
++        ].map(([title, copy]) => (
++          <article key={title} className="glass-card feature-card">
++            <h3>{title}</h3>
++            <p>{copy}</p>
++          </article>
++        ))}
++      </section>
++
++      <section className="glass-card">
++        <h2>How It Works</h2>
++        <ol>
++          <li>Connect Wallet → Mint Prydo ID.</li>
++          <li>Choose Face NFT or Avatar NFT and generate metadata.</li>
++          <li>Access creator dashboard, launch collections, and vote in DAO.</li>
++        </ol>
++      </section>
++
++      <section className="grid-2">
++        <article className="glass-card">
++          <h2>Roadmap</h2>
++          <ul>
++            <li>Q2: Genesis SBT drop + identity mint engine.</li>
++            <li>Q3: Creator studio + analytics + IPFS pipeline.</li>
++            <li>Q4: DAO tooling + marketplace launch.</li>
++          </ul>
++        </article>
++        <article className="glass-card">
++          <h2>Community</h2>
++          <p>Join builders, artists, and collectors shaping decentralized identity.</p>
++          <div className="chips">
++            <span>Discord</span>
++            <span>X / Twitter</span>
++            <span>Lens</span>
++            <span>Mirror</span>
++          </div>
++        </article>
++      </section>
++    </div>
++  );
++}
+diff --git a/src/pages/MarketplacePlaceholderPage.jsx b/src/pages/MarketplacePlaceholderPage.jsx
+new file mode 100644
+index 0000000000000000000000000000000000000000..3ab53ee240c004bf8813cd3306c9097e95550d96
+--- /dev/null
++++ b/src/pages/MarketplacePlaceholderPage.jsx
+@@ -0,0 +1,10 @@
++export default function MarketplacePlaceholderPage() {
++  return (
++    <div className="page">
++      <section className="glass-card">
++        <h1>Marketplace (Coming Soon)</h1>
++        <p>The Prydo marketplace is in development. Stay tuned for launch updates.</p>
++      </section>
++    </div>
++  );
++}
+diff --git a/src/pages/MintPage.jsx b/src/pages/MintPage.jsx
+new file mode 100644
+index 0000000000000000000000000000000000000000..f1ca9be5b1ae691342ff30b25a26ee00aed1b131
+--- /dev/null
++++ b/src/pages/MintPage.jsx
+@@ -0,0 +1,35 @@
++import { mintPhases } from '../data/prydoData';
++
++export default function MintPage({ appState }) {
++  const totalTrackedSupply = 11000;
++  const percent = Math.min((appState.mintCount / totalTrackedSupply) * 100, 100);
++
++  return (
++    <div className="page">
++      <section className="glass-card">
++        <h1>Mint Prydo ID (Soulbound NFT)</h1>
++        <p>Only one Prydo ID per wallet. Non-transferable ERC-721 identity on Polygon.</p>
++        <p>Minted: {appState.mintCount} / {totalTrackedSupply}+ tracked supply</p>
++        <div className="progress-wrap">
++          <div className="progress-bar" style={{ width: `${percent}%` }} />
++        </div>
++
++        <button className="btn neon" onClick={appState.mintPrydoId} disabled={!appState.walletAddress || appState.hasPrydoId}>
++          {appState.hasPrydoId ? 'Prydo ID Minted' : 'Mint Prydo ID'}
++        </button>
++        {!appState.walletAddress && <p className="small">Connect wallet to mint.</p>}
++      </section>
++
++      <section className="grid-2">
++        {mintPhases.map((phase) => (
++          <article key={phase.name} className="glass-card feature-card">
++            <h3>{phase.name}</h3>
++            <p>Supply: {phase.supply ? phase.supply.toLocaleString() : 'Unlimited'}</p>
++            <p>Free Mint Ratio: {(phase.freeRate * 100).toFixed(0)}%</p>
++            <p>Pricing: {phase.price}</p>
++          </article>
++        ))}
++      </section>
++    </div>
++  );
++}
+diff --git a/src/styles.css b/src/styles.css
+new file mode 100644
+index 0000000000000000000000000000000000000000..3492168129e51776f79865cb8a3b923de3ac4ab0
+--- /dev/null
++++ b/src/styles.css
+@@ -0,0 +1,148 @@
++@import url('https://fonts.googleapis.com/css2?family=Orbitron:wght@500;700;800&family=Inter:wght@400;500;700&display=swap');
++
++:root {
++  color-scheme: dark;
++  --bg: #05050a;
++  --bg-soft: #0d1022;
++  --text: #ecf0ff;
++  --muted: #a6afd0;
++  --purple: #8d4dff;
++  --neon-blue: #23d4ff;
++  --line: rgba(141, 77, 255, 0.35);
++}
++
++* { box-sizing: border-box; }
++body {
++  margin: 0;
++  font-family: Inter, system-ui, sans-serif;
++  color: var(--text);
++  background:
++    radial-gradient(circle at 20% 20%, rgba(35, 212, 255, 0.16), transparent 30%),
++    radial-gradient(circle at 80% 15%, rgba(141, 77, 255, 0.22), transparent 28%),
++    linear-gradient(160deg, #030308, var(--bg));
++  min-height: 100vh;
++}
++
++h1, h2, h3, .brand { font-family: Orbitron, Inter, sans-serif; margin-top: 0; }
++p, li { color: var(--muted); }
++a { color: inherit; text-decoration: none; }
++
++.app-shell { max-width: 1240px; margin: 0 auto; padding: 1rem; }
++.page { display: grid; gap: 1rem; padding-bottom: 2rem; }
++
++.glass-nav,
++.glass-card,
++.stat-card,
++.glass-inner {
++  border: 1px solid var(--line);
++  background: linear-gradient(135deg, rgba(13, 16, 34, 0.7), rgba(3, 7, 20, 0.7));
++  backdrop-filter: blur(10px);
++  border-radius: 16px;
++  box-shadow: 0 0 30px rgba(35, 212, 255, 0.08), inset 0 0 18px rgba(141, 77, 255, 0.15);
++}
++
++.glass-nav {
++  display: flex;
++  align-items: center;
++  justify-content: space-between;
++  gap: 0.75rem;
++  padding: 0.7rem 1rem;
++  margin-bottom: 1rem;
++  position: sticky;
++  top: 0.75rem;
++  z-index: 10;
++}
++
++.brand { font-size: 1.4rem; letter-spacing: 0.08em; }
++nav { display: flex; flex-wrap: wrap; gap: 0.5rem; }
++.nav-link {
++  font-size: 0.86rem;
++  padding: 0.4rem 0.58rem;
++  border-radius: 8px;
++  color: var(--muted);
++  transition: all .25s ease;
++}
++.nav-link:hover, .nav-link.active {
++  color: var(--text);
++  background: rgba(35, 212, 255, 0.08);
++  box-shadow: inset 0 0 0 1px rgba(35, 212, 255, 0.2);
++}
++
++.glass-card { padding: 1.2rem; animation: rise .45s ease; }
++.hero h1 { font-size: clamp(1.8rem, 4vw, 3rem); margin-bottom: 0.5rem; }
++.label { color: var(--neon-blue); letter-spacing: 0.06em; text-transform: uppercase; font-size: 0.76rem; }
++.row { display: flex; flex-wrap: wrap; gap: 0.65rem; align-items: center; }
++
++.btn {
++  border: 1px solid transparent;
++  border-radius: 12px;
++  padding: 0.62rem 1rem;
++  cursor: pointer;
++  font-weight: 600;
++  color: var(--text);
++  transition: transform .2s ease, box-shadow .2s ease, opacity .2s ease;
++}
++.btn:hover { transform: translateY(-1px); }
++.btn:disabled { cursor: not-allowed; opacity: 0.45; }
++.btn.neon {
++  background: linear-gradient(95deg, rgba(141, 77, 255, 0.95), rgba(35, 212, 255, 0.9));
++  box-shadow: 0 0 20px rgba(35, 212, 255, 0.28);
++}
++.btn.ghost {
++  background: rgba(141, 77, 255, 0.08);
++  border-color: rgba(141, 77, 255, 0.45);
++}
++
++.grid-2 { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 1rem; }
++.grid-3 { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 1rem; }
++.feature-card { min-height: 150px; }
++.small { font-size: 0.88rem; }
++.chips { display: flex; flex-wrap: wrap; gap: 0.4rem; }
++.chips span { padding: 0.35rem 0.55rem; border-radius: 999px; background: rgba(35, 212, 255, 0.12); color: var(--text); font-size: 0.82rem; }
++
++.progress-wrap {
++  width: min(560px, 100%);
++  height: 10px;
++  background: rgba(236, 240, 255, 0.08);
++  border-radius: 999px;
++  margin: 0.8rem 0 1rem;
++  overflow: hidden;
++}
++.progress-bar { height: 100%; background: linear-gradient(90deg, var(--purple), var(--neon-blue)); }
++
++.input-group { display: grid; gap: 0.4rem; }
++select, .text-input, input[type='file'] {
++  width: 100%;
++  border: 1px solid rgba(35, 212, 255, 0.3);
++  border-radius: 10px;
++  background: rgba(2, 8, 24, 0.7);
++  color: var(--text);
++  padding: 0.6rem 0.65rem;
++}
++pre {
++  overflow-x: auto;
++  background: rgba(2, 6, 18, 0.9);
++  border: 1px solid rgba(35, 212, 255, 0.2);
++  border-radius: 10px;
++  padding: 0.9rem;
++  color: #b6f5ff;
++}
++
++.stat-card { padding: 0.85rem; display: grid; gap: 0.35rem; }
++.stat-card span { color: var(--muted); font-size: 0.82rem; }
++.stat-card strong { color: var(--text); overflow-wrap: anywhere; }
++
++@keyframes rise {
++  from { opacity: 0; transform: translateY(8px); }
++  to { opacity: 1; transform: translateY(0); }
++}
++
++@media (max-width: 960px) {
++  .grid-2, .grid-3 { grid-template-columns: 1fr 1fr; }
++  .glass-nav { position: static; }
++}
++
++@media (max-width: 700px) {
++  .grid-2, .grid-3 { grid-template-columns: 1fr; }
++  .glass-nav { align-items: flex-start; flex-direction: column; }
++}
+diff --git a/vite.config.js b/vite.config.js
+new file mode 100644
+index 0000000000000000000000000000000000000000..8a19aa9b34d6e7b7bceea22faea8e3bea35a4538
+--- /dev/null
++++ b/vite.config.js
+@@ -0,0 +1,6 @@
++import { defineConfig } from 'vite';
++import react from '@vitejs/plugin-react';
++
++export default defineConfig({
++  plugins: [react()]
++});
+ 
